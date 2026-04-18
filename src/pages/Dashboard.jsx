@@ -64,7 +64,7 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-
+                   <h1></h1>
         {/* Right Column (Approx 35%) */}
         <div className="xl:w-[35%] flex flex-col gap-6">
           {/* Order Summary Pie Chart */}
