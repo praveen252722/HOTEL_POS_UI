@@ -1,23 +1,34 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080/api',
+  baseURL: '/api',
   timeout: 30000,
+  withCredentials: true,
 });
 
-// Response interceptor — normalize errors
+// ✅ Attach token to every request
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('pos_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+// ✅ Handle responses & errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const message =
       error.response?.data?.message ||
       error.message ||
-      'An unexpected error occurred';
+      'Something went wrong';
 
-    // Auto-logout on 401
+    // 🔐 Auto logout on 401
     if (error.response?.status === 401) {
-      localStorage.removeItem('pos_token'); // Changed from pos_token
+      localStorage.removeItem('pos_token');
       delete api.defaults.headers.common['Authorization'];
+
       if (!window.location.pathname.includes('/login')) {
         window.location.href = '/login';
       }
@@ -26,14 +37,5 @@ api.interceptors.response.use(
     return Promise.reject(new Error(message));
   }
 );
-
-// Add token to requests
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('pos_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
 
 export default api;
